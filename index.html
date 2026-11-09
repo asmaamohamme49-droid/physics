@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الفيزياء التفاعلية | Interactive Physics Platform</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        /* Flashcard Flip Animation */
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        .bilingual-text { direction: ltr; text-align: left; }
+        .arabic-text { direction: rtl; text-align: right; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200">
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ==========================================
+    // 1. DATA (Pages 1-13 Only - Bilingual)
+    // ==========================================
+
+    // تم التوسع في هذا القسم ليشمل كل التفاصيل العلمية من الصفحات 1 إلى 13
+    const summaryData = [
+        { 
+            title_en: "Introduction & Basic Concepts", 
+            title_ar: "مقدمة ومفاهيم أساسية", 
+            content_en: "Electricity is a branch of physics studying phenomena related to moving electric charges. All matter consists of small particles with positive or negative charges. Like charges repel, and opposite charges attract. A discharge occurs when static electricity moves from one object to another. Magnetism is the ability of an object to push or pull another, with magnets having North (N) and South (S) poles. Earth acts like a huge magnet with a magnetic field due to its iron core.", 
+            content_ar: "الكهرباء هي فرع من الفيزياء يدرس الظواهر المتعلقة بحركة الشحنات الكهربائية. تتكون كل المادة من جزيئات صغيرة ذات شحنات موجبة أو سالبة. الشحنات المتشابهة تتنافر والمختلفة تتجاذب. يحدث التفريغ عندما تنتقل الكهرباء الساكنة من جسم لآخر. المغناطيسية هي قدرة الجسم على دفع أو سحب جسم آخر، وللمغناطيس قطبان: شمالي (N) وجنوبي (S). الأرض تتصرف مثل مغناطيس ضخم لها مجال مغناطيسي بسبب الحديد الموجود في قلبها." 
+        },
+        { 
+            title_en: "Electric Charge & Coulomb's Law", 
+            title_ar: "الشحنة الكهربائية وقانون كولوم", 
+            content_en: "Electric charge is a fundamental property of matter (unit: Coulomb). It has three basic properties: Quantization (q = ne, where n is an integer and e is electron charge), Additivity (total charge is the algebraic sum), and Conservation (total charge of an isolated system remains constant). Coulomb's Law states that the electrostatic force between two point charges is directly proportional to the product of their charges and inversely proportional to the square of the distance between them: F = k(q1q2)/r^2, where k = 9x10^9 N.m^2/C^2. The Superposition Principle states that the net force on a charge is the vector sum of the individual forces exerted by other charges.", 
+            content_ar: "الشحنة الكهربائية هي خاصية أساسية للمادة (وحدتها: الكولوم). لها ثلاث خصائص أساسية: التكميم (q = ne، حيث n عدد صحيح و e شحنة الإلكترون)، الجمعية (الشحنة الكلية هي المجموع الجبري)، والحفظ (الشحنة الكلية لنظام معزول تبقى ثابتة). ينص قانون كولوم على أن القوة الكهروستاتيكية بين شحنتين نقطيتين تتناسب طردياً مع حاصل ضرب شحنتهما وعكسياً مع مربع المسافة بينهما: F = k(q1q2)/r^2، حيث k = 9x10^9. ينص مبدأ التراكب على أن القوة الكلية المؤثرة على شحنة هي المجموع المتجه للقوى الفردية التي تبذلها الشحنات الأخرى." 
+        },
+        { 
+            title_en: "Electric Field & Field Lines", 
+            title_ar: "المجال الكهربائي وخطوط المجال", 
+            content_en: "An electric field is an invisible force field caused by an electric charge, defined as the force per unit charge (E = F/q, unit: N/C). It is a vector quantity. Electric field lines represent the direction and strength of the field. They originate from positive charges and terminate at negative charges. They never intersect, and their density indicates the field's strength. The electric field due to a point charge is E = kq/r^2. Inside a conductor in electrostatic equilibrium, the electric field is zero. When an insulator is placed in an electric field, the field strength decreases.", 
+            content_ar: "المجال الكهربائي هو مجال قوة غير مرئي ناتج عن شحنة كهربائية، ويعرف بأنه القوة لكل وحدة شحنة (E = F/q، الوحدة: N/C). إنه كمية متجهة. تمثل خطوط المجال الكهربائي اتجاه وقوة المجال. تنشأ من الشحنات الموجبة وتنتهي عند الشحنات السالبة. لا تتقاطع أبداً، وتشير كثافتها إلى قوة المجال. المجال الكهربائي الناتج عن شحنة نقطية هو E = kq/r^2. داخل الموصل في حالة التوازن الكهروستاتيكي، يكون المجال الكهربائي صفراً. عندما يوضع عازل في مجال كهربائي، تقل شدة المجال." 
+        },
+        { 
+            title_en: "Electric Flux & Gauss's Law", 
+            title_ar: "الفيض الكهربائي وقانون جاوس", 
+            content_en: "Electric flux (Phi) is the number of electric field lines passing through a given area. Mathematically, Phi = E.A.cos(theta), where theta is the angle between the electric field and the area vector (unit: N.m^2/C). Gauss's Law states that the total electric flux through any closed surface is equal to the enclosed charge divided by the permittivity of free space (epsilon_0): Phi = Q_enclosed / epsilon_0. This law is highly useful for calculating electric fields of symmetric charge distributions, such as an infinite line of charge (E = lambda / 2*pi*epsilon_0*r), an infinite plane sheet (E = sigma / 2*epsilon_0), and a thin spherical shell.", 
+            content_ar: "الفيض الكهربائي (Phi) هو عدد خطوط المجال الكهربائي التي تمر عبر مساحة معينة. رياضياً، Phi = E.A.cos(theta)، حيث theta هي الزاوية بين المجال الكهربائي ومتجه المساحة (الوحدة: N.m^2/C). ينص قانون جاوس على أن الفيض الكهربائي الكلي عبر أي سطح مغلق يساوي الشحنة المحصورة مقسومة على سماحية الفراغ (epsilon_0): Phi = Q_enclosed / epsilon_0. هذا القانون مفيد جداً لحساب المجالات الكهربائية لتوزيعات الشحنة المتماثلة، مثل خط شحنة لانهائي (E = lambda / 2*pi*epsilon_0*r)، لوح لانهائي (E = sigma / 2*epsilon_0)، وقشرة كروية رقيقة." 
+        },
+        { 
+            title_en: "Electric Potential & Potential Energy", 
+            title_ar: "الجهد الكهربائي وطاقة الوضع", 
+            content_en: "Electric potential (V) is the work done by an external force to move a unit positive charge from infinity to a point in the electric field (V = W/q, unit: Volt). For a point charge, V = kq/r. Potential difference (Delta V) is the difference in potential between two points. The work done by an electric field moving a charge is W = q.Delta V. An equipotential surface is a surface where all points have the same potential; no work is done when moving a charge along it, and the electric field is always perpendicular to it. Electric potential is a scalar quantity.", 
+            content_ar: "الجهد الكهربائي (V) هو الشغل المبذول بواسطة قوة خارجية لتحريك وحدة شحنة موجبة من اللانهاية إلى نقطة في المجال الكهربائي (V = W/q، الوحدة: فولت). لشحنة نقطية، V = kq/r. فرق الجهد (Delta V) هو الفرق في الجهد بين نقطتين. الشغل المبذول بواسطة المجال الكهربائي لتحريك شحنة هو W = q.Delta V. سطح تساوي الجهد هو سطح جميع نقاطه لها نفس الجهد؛ لا يُبذل شغل عند تحريك شحنة عليه، والمجال الكهربائي دائماً عمودي عليه. الجهد الكهربائي هو كمية قياسية." 
+        },
+        { 
+            title_en: "Electric Dipole", 
+            title_ar: "ثنائي القطب الكهربائي", 
+            content_en: "An electric dipole consists of two equal and opposite charges (q and -q) separated by a small distance (2a). The dipole moment (p) is a vector with magnitude p = q x 2a, pointing from the negative charge to the positive charge. When placed in a uniform electric field (E), the dipole experiences a torque given by Tau = p x E (maximum when the angle is 90 degrees), but the net force is zero. The electric field of a dipole on its axial line is E = 2kp/r^3, and on its equatorial line is E = kp/r^3.", 
+            content_ar: "يتكون ثنائي القطب الكهربائي من شحنتين متساويتين ومتعاكستين (q و -q) تفصلهما مسافة صغيرة (2a). عزم ثنائي القطب (p) هو متجه مقداره p = q x 2a، يشير من الشحنة السالبة إلى الموجبة. عند وضعه في مجال كهربائي منتظم (E)، يتعرض ثنائي القطب لعزم (Tau = p x E) (يكون أقصى ما يمكن عند زاوية 90 درجة)، لكن القوة الكلية تساوي صفراً. المجال الكهربائي لثنائي القطب على خطه المحوري هو E = 2kp/r^3، وعلى خطه الاستوائي هو E = kp/r^3." 
+        },
+        { 
+            title_en: "DC Circuits & Ohm's Law", 
+            title_ar: "دوائر التيار المستمر وقانون أوم", 
+            content_en: "Electric current (I) is the rate of flow of electric charge (I = Q/t, unit: Ampere). Ohm's Law states that the voltage (V) across a conductor is directly proportional to the current (I) flowing through it, provided the temperature remains constant: V = I.R, where R is the resistance (unit: Ohm). Resistance depends on the material's length (L), cross-sectional area (A), and resistivity (rho): R = rho(L/A). Kirchhoff's laws are essential for analyzing complex circuits: Current Law (KCL) states the sum of currents entering a junction equals the sum leaving; Voltage Law (KVL) states the sum of all voltages around a closed loop is zero.", 
+            content_ar: "التيار الكهربائي (I) هو معدل تدفق الشحنة الكهربائية (I = Q/t، الوحدة: أمبير). ينص قانون أوم على أن الجهد (V) عبر موصل يتناسب طردياً مع التيار (I) الذي يمر عبره، بشرط أن تظل درجة الحرارة ثابتة: V = I.R، حيث R هي المقاومة (الوحدة: أوم). تعتمد المقاومة على طول المادة (L)، ومساحة المقطع العرضي (A)، والمقاومية (rho): R = rho(L/A). قوانين كيرشوف ضرورية لتحليل الدوائر المعقدة: قانون التيار (KCL) ينص على أن مجموع التيارات الداخلة لنقطة يساوي مجموع التيارات الخارجة؛ وقانون الجهد (KVL) ينص على أن مجموع كل الفولتية حول حلقة مغلقة يساوي صفراً." 
+        }
+    ];
+
+    const flashcards = [
+        { q_en: "What is Ohm's Law?", q_ar: "ما هو قانون أوم؟", a_en: "V = I × R (Voltage = Current × Resistance).", a_ar: "V = I × R (الجهد = التيار × المقاومة)." },
+        { q_en: "State Kirchhoff's Current Law.", q_ar: "اذكر قانون كيرشوف للتيار.", a_en: "Sum of currents entering a junction equals sum of currents leaving.", a_ar: "مجموع التيارات الداخلة لنقطة يساوي مجموع التيارات الخارجة." },
+        { q_en: "State Kirchhoff's Voltage Law.", q_ar: "اذكر قانون كيرشوف للجهد.", a_en: "The sum of all voltages around a closed loop is zero.", a_ar: "مجموع كل الفولتية حول حلقة مغلقة يساوي صفراً." },
+        { q_en: "What is Coulomb's Law formula?", q_ar: "ما هي معادلة قانون كولوم؟", a_en: "F = k(q1q2)/r^2", a_ar: "F = k(q1q2)/r^2" },
+        { q_en: "Define Electric Field.", q_ar: "عرّف المجال الكهربائي.", a_en: "Force per unit charge: E = F/q.", a_ar: "القوة لكل وحدة شحنة: E = F/q." },
+        { q_en: "What is Electric Flux?", q_ar: "ما هو الفيض الكهربائي؟", a_en: "Number of field lines passing through an area: Phi = E.A.", a_ar: "عدد خطوط المجال التي تمر عبر مساحة: Phi = E.A." },
+        { q_en: "State Gauss's Law.", q_ar: "اذكر قانون جاوس.", a_en: "Flux through closed surface = enclosed charge / epsilon_0.", a_ar: "الفيض عبر سطح مغلق = الشحنة المحصورة / epsilon_0." },
+        { q_en: "What is Electric Potential?", q_ar: "ما هو الجهد الكهربائي؟", a_en: "Work done per unit charge: V = W/q.", a_ar: "الشغل المبذول لكل وحدة شحنة: V = W/q." },
+        { q_en: "Define Equipotential Surface.", q_ar: "عرّف سطح تساوي الجهد.", a_en: "A surface where all points have the same potential.", a_ar: "سطح جميع نقاطه لها نفس الجهد." },
+        { q_en: "What is an Electric Dipole?", q_ar: "ما هو ثنائي القطب الكهربائي؟", a_en: "Two equal and opposite charges separated by distance 2a.", a_ar: "شحنتان متساويتان ومتعاكستان تفصلهما مسافة 2a." },
+        { q_en: "What is the dipole moment?", q_ar: "ما هو عزم ثنائي القطب؟", a_en: "p = q × 2a (direction from -q to +q).", a_ar: "p = q × 2a (الاتجاه من -q إلى +q)." },
+        { q_en: "Torque on a dipole in uniform E-field?", q_ar: "العزم على ثنائي قطب في مجال منتظم؟", a_en: "Tau = p × E.", a_ar: "Tau = p × E." },
+        { q_en: "Conductor vs Insulator?", q_ar: "الموصل مقابل العازل؟", a_en: "Conductors allow charge flow (metals); insulators do not (rubber).", a_ar: "الموصلات تسمح بتدفق الشحنة (المعادن)؛ العوازل لا تسمح (المطاط)." },
+        { q_en: "What is Quantization of charge?", q_ar: "ما هو تكميم الشحنة؟", a_en: "Total charge is an integer multiple of e: q = ne.", a_ar: "الشحنة الكلية هي مضاعف صحيح لـ e: q = ne." },
+        { q_en: "What is Conservation of charge?", q_ar: "ما هو حفظ الشحنة؟", a_en: "Total charge of an isolated system remains constant.", a_ar: "الشحنة الكلية لنظام معزول تبقى ثابتة." },
+        { q_en: "State Superposition Principle.", q_ar: "اذكر مبدأ التراكب.", a_en: "Net force is the vector sum of individual forces.", a_ar: "القوة الكلية هي المجموع المتجه للقوى الفردية." },
+        { q_en: "Property of Electric Field Lines?", q_ar: "خاصية خطوط المجال الكهربائي؟", a_en: "They start at positive, end at negative, and never cross.", a_ar: "تبدأ من الموجب، وتنتهي عند السالب، ولا تتقاطع أبداً." },
+        { q_en: "Work done by Electric Field?", q_ar: "الشغل المبذول بواسطة المجال الكهربائي؟", a_en: "W = q × E × d (if E and d are parallel).", a_ar: "W = q × E × d (إذا كان E و d متوازيين)." },
+        { q_en: "Potential Difference (Voltage)?", q_ar: "فرق الجهد (الفولتية)؟", a_en: "Delta V = W/q = - Integral(E.ds).", a_ar: "Delta V = W/q = - Integral(E.ds)." },
+        { q_en: "Potential of a point charge?", q_ar: "جهد شحنة نقطية؟", a_en: "V = kq/r.", a_ar: "V = kq/r." }
+    ];
+
+    const importantPoints = [
+        { en: "All matter is made of small particles with positive or negative charges.", ar: "كل المادة تتكون من جزيئات صغيرة بشحنات موجبة أو سالبة." },
+        { en: "Like charges repel, and opposite charges attract.", ar: "الشحنات المتشابهة تتنافر، والشحنات المختلفة تتجاذب." },
+        { en: "A magnet has two poles: North and South. Like poles repel.", ar: "المغناطيس له قطبان: شمالي وجنوبي. الأقطاب المتشابهة تتنافر." },
+        { en: "Earth acts like a huge magnet with a magnetic field.", ar: "الأرض تتصرف مثل مغناطيس ضخم لها مجال مغناطيسي." },
+        { en: "Electric field is a vector quantity (magnitude and direction).", ar: "المجال الكهربائي هو كمية متجهة (مقدار واتجاه)." },
+        { en: "Electric field lines never intersect each other.", ar: "خطوط المجال الكهربائي لا تتقاطع مع بعضها البعض أبداً." },
+        { en: "Electric field inside a conductor is zero.", ar: "المجال الكهربائي داخل الموصل يساوي صفراً." },
+        { en: "A changing electric field induces a magnetic field.", ar: "المجال الكهربائي المتغير يحفز مجالاً مغناطيسياً." },
+        { en: "Electrons move in the opposite direction of the electric field.", ar: "الإلكترونات تتحرك في الاتجاه المعاكس للمجال الكهربائي." },
+        { en: "Electric flux is proportional to the number of field lines.", ar: "الفيض الكهربائي يتناسب طردياً مع عدد خطوط المجال." },
+        { en: "Gauss's law is useful for symmetric charge distributions.", ar: "قانون جاوس مفيد لتوزيعات الشحنة المتماثلة." },
+        { en: "Electric potential is a scalar quantity.", ar: "الجهد الكهربائي هو كمية قياسية." },
+        { en: "Work done in moving a charge on an equipotential surface is zero.", ar: "الشغل المبذول لتحريك شحنة على سطح تساوي الجهد يساوي صفراً." },
+        { en: "Electric field is always perpendicular to equipotential surfaces.", ar: "المجال الكهربائي دائماً عمودي على أسطح تساوي الجهد." },
+        { en: "Capacitance is the ratio of charge to potential difference (C = Q/V).", ar: "السعة هي نسبة الشحنة إلى فرق الجهد (C = Q/V)." },
+        { en: "Dielectric materials increase the capacitance of a capacitor.", ar: "المواد العازلة تزيد من سعة المكثف." },
+        { en: "Resistance is directly proportional to length and inversely to area.", ar: "المقاومة تتناسب طردياً مع الطول وعكسياً مع المساحة." },
+        { en: "Resistivity depends on the material and temperature.", ar: "المقاومية تعتمد على المادة ودرجة الحرارة." },
+        { en: "Kirchhoff's laws are based on conservation of charge and energy.", ar: "قوانين كيرشوف مبنية على حفظ الشحنة والطاقة." },
+        { en: "A Wheatstone bridge is used to measure unknown resistance.", ar: "جسر ويتستون يستخدم لقياس مقاومة غير معروفة." }
+    ];
+
+    const lawsData = [
+        {
+            name_en: "Ohm's Law", name_ar: "قانون أوم",
+            formula: "V = I \\times R",
+            desc_en: "The voltage across a component equals the product of current and resistance.", desc_ar: "الجهد عبر مكون يساوي حاصل ضرب التيار والمقاومة.",
+            symbols: "V: Voltage (Volts) | I: Current (Amperes) | R: Resistance (Ohms)",
+            use_en: "To calculate unknown voltage, current, or resistance.", use_ar: "لحساب الجهد أو التيار أو المقاومة غير المعروفة.",
+            note_en: "Valid for ohmic materials at constant temperature.", note_ar: "صالح للمواد الأومية عند درجة حرارة ثابتة.",
+            problem: {
+                q_en: "A resistor of 10Ω has a current of 2A flowing through it. What is the voltage?", q_ar: "مقاومة 10 أوم يمر بها تيار 2 أمبير. ما هو الجهد؟",
+                given: "R = 10Ω, I = 2A", required: "V = ?",
+                solution: "V = I × R = 2 × 10 = 20V."
+            }
+        },
+        {
+            name_en: "Coulomb's Law", name_ar: "قانون كولوم",
+            formula: "F = k \\frac{q_1 q_2}{r^2}",
+            desc_en: "The electrostatic force between two point charges.", desc_ar: "القوة الكهروستاتيكية بين شحنتين نقطيتين.",
+            symbols: "F: Force (N) | k: 9x10^9 | q: Charge (C) | r: Distance (m)",
+            use_en: "To find the force between two stationary charges.", use_ar: "لإيجاد القوة بين شحنتين ثابتتين.",
+            note_en: "Valid only for point charges at rest.", note_ar: "صالح فقط للشحنات النقطية في حالة السكون.",
+            problem: {
+                q_en: "Calculate the force between two 1C charges separated by 1m.", q_ar: "احسب القوة بين شحنتين 1 كولوم تفصلهما مسافة 1 متر.",
+                given: "q1 = 1C, q2 = 1C, r = 1m, k = 9x10^9", required: "F = ?",
+                solution: "F = (9x10^9)(1)(1)/1^2 = 9 × 10^9 N."
+            }
+        },
+        {
+            name_en: "Electric Field", name_ar: "المجال الكهربائي",
+            formula: "E = \\frac{F}{q}",
+            desc_en: "Electric force experienced by a unit charge.", desc_ar: "القوة الكهربائية التي تشعر بها وحدة الشحنة.",
+            symbols: "E: Electric Field (N/C) | F: Force (N) | q: Charge (C)",
+            use_en: "To find the field intensity at a point.", use_ar: "لإيجاد شدة المجال عند نقطة.",
+            note_en: "Direction is the same as force on a positive charge.", note_ar: "الاتجاه هو نفس اتجاه القوة على شحنة موجبة.",
+            problem: {
+                q_en: "An 8N force acts on a 3μC charge. Find the Electric Field.", q_ar: "قوة مقدارها 8 نيوتن تؤثر على شحنة 3 ميكروكولوم. أوجد المجال الكهربائي.",
+                given: "F = 8N, q = 3x10^-6 C", required: "E = ?",
+                solution: "E = F/q = 8 / (3×10^-6) = 2.67 × 10^6 N/C."
+            }
+        },
+        {
+            name_en: "Electric Flux", name_ar: "الفيض الكهربائي",
+            formula: "\\phi = E \\cdot A \\cos\\theta",
+            desc_en: "Number of field lines passing through an area.", desc_ar: "عدد خطوط المجال التي تمر عبر مساحة.",
+            symbols: "Phi: Flux (N.m^2/C) | E: Field | A: Area | theta: Angle",
+            use_en: "To measure the field passing through a surface.", use_ar: "لقياس المجال المار عبر سطح.",
+            note_en: "Maximum when E is perpendicular to the area.", note_ar: "أقصى قيمة عندما يكون E عمودياً على المساحة.",
+            problem: {
+                q_en: "A uniform field of 5 N/C passes perpendicular through a 2m^2 area. Find flux.", q_ar: "مجال منتظم 5 نيوتن/كولوم يمر عمودياً عبر مساحة 2 متر مربع. أوجد الفيض.",
+                given: "E = 5 N/C, A = 2m^2, theta = 0", required: "Phi = ?",
+                solution: "Phi = E × A × cos(0) = 5 × 2 × 1 = 10 N.m^2/C."
+            }
+        },
+        {
+            name_en: "Electric Potential", name_ar: "الجهد الكهربائي",
+            formula: "V = k \\frac{q}{r}",
+            desc_en: "Work done per unit charge to bring it from infinity.", desc_ar: "الشغل المبذول لكل وحدة شحنة لجلبها من اللانهاية.",
+            symbols: "V: Potential (Volts) | k: Constant | q: Charge | r: Distance",
+            use_en: "To find potential at a distance from a point charge.", use_ar: "لإيجاد الجهد على مسافة من شحنة نقطية.",
+            note_en: "Potential is a scalar quantity.", note_ar: "الجهد كمية قياسية.",
+            problem: {
+                q_en: "Find the potential at 2m from a 4μC charge.", q_ar: "أوجد الجهد على مسافة 2 متر من شحنة 4 ميكروكولوم.",
+                given: "q = 4x10^-6 C, r = 2m, k = 9x10^9", required: "V = ?",
+                solution: "V = (9x10^9 × 4x10^-6) / 2 = 18 × 10^3 V = 18000 V."
+            }
+        }
+    ];
+
+    // Generating 60 MCQs covering pages 1-13 (Fully Bilingual)
+    const generateExam = () => {
+        const baseQuestions = [
+            { q: "What is the unit of Electric Field?", q_ar: "ما هي وحدة المجال الكهربائي؟", opts: ["N/C", "C/N", "V/m", "J/C"], opts_ar: ["نيوتن/كولوم", "كولوم/نيوتن", "فولت/متر", "جول/كولوم"], ans: 0, exp: "E = F/q (N/C).", exp_ar: "E = F/q (نيوتن/كولوم)." },
+            { q: "What is Ohm's Law formula?", q_ar: "ما هي معادلة قانون أوم؟", opts: ["V = I/R", "V = IR", "I = VR", "R = VI"], opts_ar: ["V = I/R", "V = IR", "I = VR", "R = VI"], ans: 1, exp: "Voltage = Current × Resistance.", exp_ar: "الجهد = التيار × المقاومة." },
+            { q: "Like charges...", q_ar: "الشحنات المتشابهة...", opts: ["Attract", "Repel", "Neutralize", "Do nothing"], opts_ar: ["تتجاذب", "تتنافر", "تتعادل", "لا تفعل شيئاً"], ans: 1, exp: "Like charges repel each other.", exp_ar: "الشحنات المتشابهة تتنافر." },
+            { q: "The unit of charge is...", q_ar: "وحدة الشحنة هي...", opts: ["Ampere", "Volt", "Coulomb", "Ohm"], opts_ar: ["أمبير", "فولت", "كولوم", "أوم"], ans: 2, exp: "Charge is measured in Coulombs.", exp_ar: "الشحنة تقاس بالكولوم." },
+            { q: "Kirchhoff's Current Law is based on...", q_ar: "قانون كيرشوف للتيار يعتمد على...", opts: ["Energy conservation", "Charge conservation", "Momentum", "Force"], opts_ar: ["حفظ الطاقة", "حفظ الشحنة", "الزخم", "القوة"], ans: 1, exp: "It is based on conservation of charge.", exp_ar: "يعتمد على مبدأ حفظ الشحنة." },
+            { q: "Field lines start from...", q_ar: "خطوط المجال تبدأ من...", opts: ["Negative charge", "Positive charge", "Neutral charge", "Infinity"], opts_ar: ["الشحنة السالبة", "الشحنة الموجبة", "الشحنة المتعادلة", "اللانهاية"], ans: 1, exp: "They originate from positive charges.", exp_ar: "تنشأ من الشحنات الموجبة." },
+            { q: "Electric flux unit is...", q_ar: "وحدة الفيض الكهربائي هي...", opts: ["N/C", "N.m^2/C", "C/N", "V.m"], opts_ar: ["نيوتن/كولوم", "نيوتن.م^2/كولوم", "كولوم/نيوتن", "فولت.متر"], ans: 1, exp: "Flux = E.A, so N.m^2/C.", exp_ar: "الفيض = E.A، لذا الوحدة نيوتن.م^2/كولوم." },
+            { q: "Work done on an equipotential surface is...", q_ar: "الشغل المبذول على سطح تساوي الجهد هو...", opts: ["Maximum", "Zero", "Infinite", "Negative"], opts_ar: ["أقصى ما يمكن", "صفر", "لانهاية", "سالب"], ans: 1, exp: "Potential difference is zero, so W=0.", exp_ar: "فرق الجهد صفر، لذا الشغل صفر." },
+            { q: "A capacitor stores...", q_ar: "المكثف يخزن...", opts: ["Energy", "Resistance", "Current", "Magnetic field"], opts_ar: ["طاقة", "مقاومة", "تيار", "مجال مغناطيسي"], ans: 0, exp: "It stores electric charge and energy.", exp_ar: "يخزن شحنة وطاقة كهربائية." },
+            { q: "The formula for Coulomb's Law is...", q_ar: "معادلة قانون كولوم هي...", opts: ["F = kq/r", "F = kq1q2/r^2", "F = qE", "F = ma"], opts_ar: ["F = kq/r", "F = kq1q2/r^2", "F = qE", "F = ma"], ans: 1, exp: "F = k(q1q2)/r^2.", exp_ar: "F = k(q1q2)/r^2." },
+            { q: "Which material allows charge to flow?", q_ar: "أي مادة تسمح بتدفق الشحنة؟", opts: ["Insulator", "Conductor", "Dielectric", "Rubber"], opts_ar: ["عازل", "موصل", "عازل كهربائي", "مطاط"], ans: 1, exp: "Conductors (like metals) allow flow.", exp_ar: "الموصلات (مثل المعادن) تسمح بالتدفق." },
+            { q: "Electric field inside a conductor is...", q_ar: "المجال الكهربائي داخل الموصل...", opts: ["Maximum", "Zero", "Infinite", "Variable"], opts_ar: ["أقصى ما يمكن", "صفر", "لانهاية", "متغير"], ans: 1, exp: "It is zero in electrostatic equilibrium.", exp_ar: "يساوي صفراً في حالة التوازن الكهروستاتيكي." },
+            { q: "The unit of Resistance is...", q_ar: "وحدة المقاومة هي...", opts: ["Volt", "Ampere", "Ohm", "Watt"], opts_ar: ["فولت", "أمبير", "أوم", "واط"], ans: 2, exp: "Resistance is in Ohms.", exp_ar: "المقاومة تقاس بالأوم." },
+            { q: "A changing electric field induces...", q_ar: "المجال الكهربائي المتغير يحفز...", opts: ["Electric charge", "Magnetic field", "Gravity", "Resistance"], opts_ar: ["شحنة كهربائية", "مجال مغناطيسي", "جاذبية", "مقاومة"], ans: 1, exp: "It induces a magnetic field.", exp_ar: "يحفز مجالاً مغناطيسياً." },
+            { q: "Potential difference is also called...", q_ar: "فرق الجهد يسمى أيضاً...", opts: ["Current", "Voltage", "Resistance", "Power"], opts_ar: ["تيار", "فولتية", "مقاومة", "قدرة"], ans: 1, exp: "It is commonly known as Voltage.", exp_ar: "يعرف شائعاً بالفولتية." },
+            { q: "Gauss's law relates flux to...", q_ar: "قانون جاوس يربط الفيض بـ...", opts: ["Enclosed charge", "Distance", "Area", "Voltage"], opts_ar: ["الشحنة المحصورة", "المسافة", "المساحة", "الجهد"], ans: 0, exp: "Flux = Q_enclosed / epsilon_0.", exp_ar: "الفيض = الشحنة المحصورة / epsilon_0." },
+            { q: "Dipole moment direction is from...", q_ar: "اتجاه عزم ثنائي القطب من...", opts: ["+q to -q", "-q to +q", "North to South", "South to North"], opts_ar: ["من +q إلى -q", "من -q إلى +q", "من الشمال للجنوب", "من الجنوب للشمال"], ans: 1, exp: "It is directed from negative to positive.", exp_ar: "يتجه من السالب إلى الموجب." },
+            { q: "Torque on a dipole is maximum when angle is...", q_ar: "العزم على ثنائي القطب يكون أقصى ما يمكن عندما تكون الزاوية...", opts: ["0", "45", "90", "180"], opts_ar: ["0", "45", "90", "180"], ans: 2, exp: "Torque = pE sin(theta), max at 90 degrees.", exp_ar: "العزم = pE sin(theta)، أقصى قيمة عند 90 درجة." },
+            { q: "Current is defined as...", q_ar: "التيار يعرف بأنه...", opts: ["Q/t", "V/R", "W/q", "E.A"], opts_ar: ["Q/t", "V/R", "W/q", "E.A"], ans: 0, exp: "Current = Charge / time.", exp_ar: "التيار = الشحنة / الزمن." },
+            { q: "Kirchhoff's Voltage Law says sum of voltages in a loop is...", q_ar: "قانون كيرشوف للجهد يقول أن مجموع الفولتية في حلقة...", opts: ["Maximum", "Zero", "Infinite", "Constant"], opts_ar: ["أقصى ما يمكن", "صفر", "لانهاية", "ثابت"], ans: 1, exp: "Sum = 0 based on energy conservation.", exp_ar: "المجموع = صفر بناءً على حفظ الطاقة." },
+            { q: "What is the work done formula?", q_ar: "ما هي معادلة الشغل؟", opts: ["W = Fd", "W = qV", "W = qEd", "All of the above"], opts_ar: ["W = Fd", "W = qV", "W = qEd", "كل ما سبق"], ans: 3, exp: "All are valid forms of work.", exp_ar: "كلها صيغ صالحة للشغل." },
+            { q: "Electric potential is a...", q_ar: "الجهد الكهربائي هو...", opts: ["Vector", "Scalar", "Tensor", "Field"], opts_ar: ["متجه", "قياسي", "تنسور", "مجال"], ans: 1, exp: "It has magnitude but no direction.", exp_ar: "له مقدار ولكن ليس له اتجاه." },
+            { q: "Which is an insulator?", q_ar: "أي مما يلي يعتبر عازلاً؟", opts: ["Copper", "Silver", "Rubber", "Aluminum"], opts_ar: ["نحاس", "فضة", "مطاط", "ألومنيوم"], ans: 2, exp: "Rubber is an insulator.", exp_ar: "المطاط عازل." },
+            { q: "The permittivity of free space is...", q_ar: "سماحية الفراغ هي...", opts: ["8.85x10^-12", "9x10^9", "1.6x10^-19", "6.6x10^-34"], opts_ar: ["8.85x10^-12", "9x10^9", "1.6x10^-19", "6.6x10^-34"], ans: 0, exp: "Epsilon_0 = 8.85x10^-12 C^2/N.m^2.", exp_ar: "Epsilon_0 = 8.85x10^-12 كولوم^2/نيوتن.م^2." },
+            { q: "Resistance is directly proportional to...", q_ar: "المقاومة تتناسب طردياً مع...", opts: ["Area", "Length", "Voltage", "Current"], opts_ar: ["المساحة", "الطول", "الجهد", "التيار"], ans: 1, exp: "R = rho L / A.", exp_ar: "R = rho L / A." },
+            { q: "Charge is quantized means...", q_ar: "تكميم الشحنة يعني...", opts: ["Charge is continuous", "Charge is q=ne", "Charge is lost", "Charge is zero"], opts_ar: ["الشحنة مستمرة", "الشحنة q=ne", "الشحنة تضيع", "الشحنة صفر"], ans: 1, exp: "It exists in discrete packets of e.", exp_ar: "توجد في حزم منفصلة من e." },
+            { q: "Which law explains electrostatic force?", q_ar: "أي قانون يفسر القوة الكهروستاتيكية؟", opts: ["Ohm's Law", "Coulomb's Law", "Kirchhoff's Law", "Gauss's Law"], opts_ar: ["قانون أوم", "قانون كولوم", "قانون كيرشوف", "قانون جاوس"], ans: 1, exp: "Coulomb's law.", exp_ar: "قانون كولوم." },
+            { q: "Electric field lines never...", q_ar: "خطوط المجال الكهربائي لا...", opts: ["Cross", "Bend", "Go straight", "End"], opts_ar: ["تتقاطع", "تنحني", "تسير مستقيمة", "تنتهي"], ans: 0, exp: "They never intersect.", exp_ar: "لا تتقاطع أبداً." },
+            { q: "A capacitor with dielectric has capacitance...", q_ar: "مكثف مع عازل تكون سعته...", opts: ["Decreased", "Increased", "Same", "Zero"], opts_ar: ["أقل", "أكبر", "نفسها", "صفر"], ans: 1, exp: "C = K*C0, K > 1.", exp_ar: "C = K*C0، حيث K > 1." },
+            { q: "Energy stored in capacitor is...", q_ar: "الطاقة المخزنة في المكثف هي...", opts: ["1/2 CV^2", "CV", "IV", "IR"], opts_ar: ["1/2 CV^2", "CV", "IV", "IR"], ans: 0, exp: "U = 1/2 CV^2.", exp_ar: "U = 1/2 CV^2." },
+            { q: "Ampere's law relates...", q_ar: "قانون أمبير يربط...", opts: ["Field to charge", "Field to current", "Voltage to current", "Resistance to length"], opts_ar: ["المجال بالشحنة", "المجال بالتيار", "الجهد بالتيار", "المقاومة بالطول"], ans: 1, exp: "It relates magnetic field to electric current.", exp_ar: "يربط المجال المغناطيسي بالتيار الكهربائي." },
+            { q: "A point charge potential is given by...", q_ar: "جهد الشحنة النقطية يعطى بـ...", opts: ["kq/r^2", "kq/r", "kqq/r^2", "q/r"], opts_ar: ["kq/r^2", "kq/r", "kqq/r^2", "q/r"], ans: 1, exp: "V = kq/r.", exp_ar: "V = kq/r." },
+            { q: "In a uniform electric field, field lines are...", q_ar: "في مجال كهربائي منتظم، خطوط المجال تكون...", opts: ["Curved", "Parallel and straight", "Circular", "Random"], opts_ar: ["منحنية", "متوازية ومستقيمة", "دائرية", "عشوائية"], ans: 1, exp: "They are uniformly spaced straight lines.", exp_ar: "تكون خطوطاً مستقيمة متباعدة بشكل منتظم." },
+            { q: "Which is not a property of conductors?", q_ar: "أي مما يلي ليس من خصائص الموصلات؟", opts: ["Zero internal field", "Free electrons", "High resistance", "Equipotential volume"], ans: 2, opts_ar: ["مجال داخلي صفر", "إلكترونات حرة", "مقاومة عالية", "حجم متساوي الجهد"], exp: "Conductors have low resistance.", exp_ar: "الموصلات لها مقاومة منخفضة." },
+            { q: "The unit of electric potential is...", q_ar: "وحدة الجهد الكهربائي هي...", opts: ["Volt", "Ampere", "Coulomb", "Ohm"], opts_ar: ["فولت", "أمبير", "كولوم", "أوم"], ans: 0, exp: "Volt = Joules/Coulomb.", exp_ar: "فولت = جول/كولوم." },
+            { q: "Coulomb's law is valid for...", q_ar: "قانون كولوم صالح لـ...", opts: ["Moving charges", "Point charges at rest", "Large plates", "Current"], opts_ar: ["الشحنات المتحركة", "الشحنات النقطية الساكنة", "الألواح الكبيرة", "التيار"], ans: 1, exp: "It is for point charges at rest.", exp_ar: "مخصص للشحنات النقطية في حالة السكون." },
+            { q: "Gauss's law uses a...", q_ar: "قانون جاوس يستخدم...", opts: ["Open surface", "Closed surface", "Line", "Point"], opts_ar: ["سطح مفتوح", "سطح مغلق", "خط", "نقطة"], ans: 1, exp: "It uses a closed Gaussian surface.", exp_ar: "يستخدم سطح جاوس المغلق." },
+            { q: "Electric potential difference is...", q_ar: "فرق الجهد الكهربائي هو...", opts: ["W/q", "q/W", "F/q", "q/F"], opts_ar: ["W/q", "q/W", "F/q", "q/F"], ans: 0, exp: "Delta V = W/q.", exp_ar: "Delta V = W/q." },
+            { q: "The force between two charges is inversely proportional to...", q_ar: "القوة بين شحنتين تتناسب عكسياً مع...", opts: ["Product of charges", "Square of distance", "Distance", "Charge"], opts_ar: ["حاصل ضرب الشحنتين", "مربع المسافة", "المسافة", "الشحنة"], ans: 1, exp: "F proportional to 1/r^2.", exp_ar: "F تتناسب مع 1/r^2." },
+            { q: "Electric field is defined as...", q_ar: "المجال الكهربائي يعرف بأنه...", opts: ["F/q", "q/F", "W/q", "q/W"], opts_ar: ["F/q", "q/F", "W/q", "q/W"], ans: 0, exp: "E = F/q.", exp_ar: "E = F/q." },
+            { q: "Which of the following is a scalar?", q_ar: "أي مما يلي كمية قياسية؟", opts: ["Electric field", "Force", "Potential", "Torque"], opts_ar: ["المجال الكهربائي", "القوة", "الجهد", "العزم"], ans: 2, exp: "Electric potential is a scalar.", exp_ar: "الجهد الكهربائي كمية قياسية." },
+            { q: "Dielectric constant K is...", q_ar: "ثابت العزل K هو...", opts: ["Less than 1", "Equal to 1", "Greater than 1", "Zero"], opts_ar: ["أقل من 1", "يساوي 1", "أكبر من 1", "صفر"], ans: 2, exp: "K > 1 for dielectrics.", exp_ar: "K > 1 للمواد العازلة." },
+            { q: "The unit of Capacitance is...", q_ar: "وحدة السعة هي...", opts: ["Farad", "Ohm", "Volt", "Coulomb"], opts_ar: ["فاراد", "أوم", "فولت", "كولوم"], ans: 0, exp: "Farad (F) = C/V.", exp_ar: "فاراد (F) = كولوم/فولت." },
+            { q: "Ohm's law graph V vs I is...", q_ar: "رسم قانون أوم V مقابل I هو...", opts: ["Curve", "Straight line", "Circle", "Parabola"], opts_ar: ["منحنى", "خط مستقيم", "دائرة", "قطع مكافئ"], ans: 1, exp: "V = IR gives a straight line through origin.", exp_ar: "V = IR يعطي خطاً مستقيماً يمر بنقطة الأصل." },
+            { q: "A test charge is always...", q_ar: "شحنة الاختبار تكون دائماً...", opts: ["Negative", "Positive", "Neutral", "Large"], opts_ar: ["سالبة", "موجبة", "متعادلة", "كبيرة"], ans: 1, exp: "It is conventionally positive.", exp_ar: "تقليدياً تكون موجبة." },
+            { q: "The electrostatic force follows Newton's...", q_ar: "القوة الكهروستاتيكية تتبع قانون نيوتن...", opts: ["First law", "Second law", "Third law", "Gravity law"], opts_ar: ["الأول", "الثاني", "الثالث", "الجذب"], ans: 2, exp: "It obeys action-reaction (3rd law).", exp_ar: "تطيع الفعل ورد الفعل (القانون الثالث)." },
+            { q: "Superposition principle applies to...", q_ar: "مبدأ التراكب ينطبق على...", opts: ["Forces", "Fields", "Potentials", "All of the above"], opts_ar: ["القوى", "المجالات", "الجهود", "كل ما سبق"], ans: 3, exp: "It applies to all linear quantities.", exp_ar: "ينطبق على جميع الكميات الخطية." },
+            { q: "What is the formula for a parallel plate capacitor?", q_ar: "ما هي معادلة المكثف ذو اللوحين المتوازيين؟", opts: ["C = epsilon A/d", "C = QV", "C = 1/2 V^2", "C = d/(epsilon A)"], opts_ar: ["C = epsilon A/d", "C = QV", "C = 1/2 V^2", "C = d/(epsilon A)"], ans: 0, exp: "C = epsilon_0 A/d.", exp_ar: "C = epsilon_0 A/d." },
+            { q: "As distance from a point charge increases, potential...", q_ar: "كلما زادت المسافة من شحنة نقطية، فإن الجهد...", opts: ["Increases", "Decreases", "Remains same", "Becomes infinite"], opts_ar: ["يزداد", "يقل", "يبقى ثابتاً", "يصبح لانهاية"], ans: 1, exp: "V = kq/r, so V decreases.", exp_ar: "V = kq/r، لذا يقل الجهد." },
+            { q: "Which law is used to find field of symmetric charge distribution?", q_ar: "أي قانون يستخدم لإيجاد مجال توزيع شحنة متماثل؟", opts: ["Coulomb's", "Gauss's", "Ohm's", "Kirchhoff's"], opts_ar: ["كولوم", "جاوس", "أوم", "كيرشوف"], ans: 1, exp: "Gauss's law is best for symmetry.", exp_ar: "قانون جاوس هو الأفضل للتماثل." },
+            { q: "A discharge occurs when...", q_ar: "يحدث التفريغ عندما...", opts: ["Charges build up", "Static electricity moves", "Current stops", "Voltage is zero"], opts_ar: ["تتراكم الشحنات", "تتحرك الكهرباء الساكنة", "يتوقف التيار", "يكون الجهد صفراً"], ans: 1, exp: "It is the movement of static charges.", exp_ar: "هو حركة الشحنات الساكنة." },
+            { q: "The magnetic field of Earth points from...", q_ar: "المجال المغناطيسي للأرض يشير من...", opts: ["North to South", "South to North", "East to West", "West to East"], opts_ar: ["الشمال للجنوب", "الجنوب للشمال", "الشرق للغرب", "الغرب للشرق"], ans: 1, exp: "Geographic South to Geographic North.", exp_ar: "من الجنوب الجغرافي إلى الشمال الجغرافي." },
+            { q: "A bar magnet has how many poles?", q_ar: "كم عدد أقطاب المغناطيس؟", opts: ["1", "2", "3", "4"], opts_ar: ["1", "2", "3", "4"], ans: 1, exp: "North and South poles.", exp_ar: "قطب شمالي وقطب جنوبي." },
+            { q: "Electrons move in the direction...", q_ar: "الإلكترونات تتحرك في الاتجاه...", opts: ["Of the field", "Opposite to field", "Perpendicular", "Random"], opts_ar: ["المجال", "المعاكس للمجال", "العمودي", "العشوائي"], ans: 1, exp: "They move opposite to the E-field.", exp_ar: "تتحرك عكس اتجاه المجال الكهربائي." },
+            { q: "The unit of electric flux is...", q_ar: "وحدة الفيض الكهربائي هي...", opts: ["N/C", "V.m", "N.m^2/C", "C/m^2"], opts_ar: ["نيوتن/كولوم", "فولت.متر", "نيوتن.م^2/كولوم", "كولوم/م^2"], ans: 2, exp: "E.A = (N/C).m^2.", exp_ar: "E.A = (نيوتن/كولوم).م^2." },
+            { q: "If distance is doubled, the electric force becomes...", q_ar: "إذا تضاعفت المسافة، فإن القوة الكهربائية تصبح...", opts: ["Double", "Half", "One quarter", "Four times"], opts_ar: ["ضعف", "نصف", "ربع", "أربعة أضعاف"], ans: 2, exp: "F proportional to 1/r^2, so 1/4th.", exp_ar: "F تتناسب مع 1/r^2، لذا تصبح الربع." },
+            { q: "Electric potential energy of two charges is...", q_ar: "طاقة الوضع الكهربائية لشحنتين هي...", opts: ["kq1q2/r", "kq1q2/r^2", "qV", "1/2 CV^2"], opts_ar: ["kq1q2/r", "kq1q2/r^2", "qV", "1/2 CV^2"], ans: 0, exp: "U = kq1q2/r.", exp_ar: "U = kq1q2/r." },
+            { q: "A surface with constant potential is called...", q_ar: "السطح ذو الجهد الثابت يسمى...", opts: ["Equipotential", "Isotherm", "Gaussian", "Dielectric"], opts_ar: ["متساوي الجهد", "متساوي الحرارة", "جاوس", "عازل"], ans: 0, exp: "Equipotential surface.", exp_ar: "سطح متساوي الجهد." },
+            { q: "What happens to E-field if an insulator is placed?", q_ar: "ماذا يحدث للمجال الكهربائي إذا وضع عازل؟", opts: ["Increases", "Decreases", "Remains same", "Becomes zero"], opts_ar: ["يزداد", "يقل", "يبقى ثابتاً", "يصبح صفراً"], ans: 1, exp: "It decreases due to polarization.", exp_ar: "يقل بسبب الاستقطاب." },
+            { q: "The symbol for electric flux is...", q_ar: "رمز الفيض الكهربائي هو...", opts: ["E", "V", "Phi", "Lambda"], opts_ar: ["E", "V", "Phi", "Lambda"], ans: 2, exp: "It is represented by Greek letter Phi.", exp_ar: "يمثل بالحرف اليوناني Phi." },
+            { q: "Current direction is conventionally the flow of...", q_ar: "اتجاه التيار تقليدياً هو تدفق...", opts: ["Electrons", "Positive charges", "Neutrons", "Protons"], opts_ar: ["الإلكترونات", "الشحنات الموجبة", "النيوترونات", "البروتونات"], ans: 1, exp: "Conventional current is positive charge flow.", exp_ar: "التيار التقليدي هو تدفق الشحنات الموجبة." }
+        ];
+
+        let finalExam = [...baseQuestions];
+        let i = 0;
+        while(finalExam.length < 60) {
+            finalExam.push({...baseQuestions[i % baseQuestions.length], q: baseQuestions[i % baseQuestions.length].q + ` (${finalExam.length})`});
+            i++;
+        }
+        return finalExam.slice(0, 60).map((q, idx) => ({...q, id: idx}));
+    };
+
+    const examData = generateExam();
+
+    // ==========================================
+    // 2. COMPONENTS
+    // ==========================================
+
+    const MathRenderer = ({ math }) => {
+        const ref = React.useRef(null);
+        useEffect(() => {
+            if (ref.current && window.katex) {
+                window.katex.render(math, ref.current, { throwOnError: false, displayMode: true });
+            }
+        }, [math]);
+        return <div ref={ref} className="my-2 overflow-x-auto text-lg"></div>;
+    };
+
+    const Sidebar = ({ activeTab, setActiveTab, t, lang, toggleLang, theme, toggleTheme }) => {
+        const menuItems = [
+            { id: 'dashboard', icon: 'fa-chart-pie', label: t('dashboard') },
+            { id: 'summary', icon: 'fa-book-open', label: t('summary') },
+            { id: 'flashcards', icon: 'fa-clone', label: t('flashcards') },
+            { id: 'points', icon: 'fa-list-check', label: t('points') },
+            { id: 'laws', icon: 'fa-calculator', label: t('laws') },
+            { id: 'exam', icon: 'fa-graduation-cap', label: t('exam') },
+        ];
+
+        return (
+            <aside className="w-full md:w-64 bg-white dark:bg-slate-800 border-l md:border-l-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col h-auto md:h-screen sticky top-0 z-50 shadow-sm">
+                <div className="p-4 flex items-center justify-center border-b border-slate-200 dark:border-slate-700">
+                    <h1 className="text-xl font-bold text-primary dark:text-indigo-400 flex items-center gap-2">
+                        <i className="fas fa-atom"></i> {t('appName')}
+                    </h1>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
+                    {menuItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-primary text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                        >
+                            <i className={`fas ${item.icon} w-5 text-center`}></i>
+                            <span className="font-semibold">{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between">
+                    <button onClick={toggleLang} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition font-bold">
+                        <i className="fas fa-globe"></i>
+                        {lang === 'ar' ? 'English UI' : 'واجهة عربية'}
+                    </button>
+                    <button onClick={toggleTheme} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                        {theme === 'dark' ? <i className="fas fa-sun text-yellow-400"></i> : <i className="fas fa-moon text-slate-600"></i>}
+                    </button>
+                </div>
+            </aside>
+        );
+    };
+
+    const Dashboard = ({ t, progress, resetProgress }) => {
+        return (
+            <div className="p-6 max-w-6xl mx-auto space-y-6">
+                <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white shadow-lg">
+                    <h2 className="text-3xl font-bold mb-2">{t('welcome')}</h2>
+                    <p className="text-lg opacity-90 mb-6">{t('welcomeDesc')}</p>
+                    
+                    <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
+                        <div className="flex justify-between mb-2">
+                            <span className="font-semibold">{t('overallProgress')}</span>
+                            <span className="font-bold">{progress.overall}%</span>
+                        </div>
+                        <div className="w-full bg-black/20 rounded-full h-3">
+                            <div className="bg-white rounded-full h-3 transition-all duration-1000" style={{ width: `${progress.overall}%` }}></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { label: t('studiedSections'), value: `${progress.sections} / 7`, icon: 'fa-book-open', color: 'text-blue-500' },
+                        { label: t('reviewedCards'), value: `${progress.cards} / 20`, icon: 'fa-clone', color: 'text-purple-500' },
+                        { label: t('learnedLaws'), value: `${progress.laws} / 5`, icon: 'fa-calculator', color: 'text-orange-500' },
+                        { label: t('lastExam'), value: progress.lastExam ? `${progress.lastExam}%` : t('noExam'), icon: 'fa-graduation-cap', color: 'text-green-500' }
+                    ].map((stat, idx) => (
+                        <div key={idx} className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                            <div className={`p-3 rounded-full bg-slate-50 dark:bg-slate-900 ${stat.color}`}>
+                                <i className={`fas ${stat.icon} text-xl`}></i>
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
+                                <p className="text-xl font-bold">{stat.value}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-end mt-8">
+                    <button onClick={resetProgress} className="text-sm text-red-500 hover:underline flex items-center gap-1">
+                        <i className="fas fa-rotate-right"></i> {t('resetProgress')}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const Summary = ({ t, setProgress }) => {
+        const [activeTopic, setActiveTopic] = useState(0);
+
+        useEffect(() => {
+            setProgress(p => ({...p, sections: Math.max(p.sections, activeTopic + 1)}));
+        }, [activeTopic]);
+
+        return (
+            <div className="p-6 max-w-6xl mx-auto flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/3 flex flex-col gap-2">
+                    {summaryData.map((topic, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setActiveTopic(idx)}
+                            className={`text-right px-4 py-3 rounded-xl transition font-semibold ${activeTopic === idx ? 'bg-primary text-white shadow-md' : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'}`}
+                        >
+                            <div className="arabic-text">{topic.title_ar}</div>
+                            <div className="text-xs opacity-70 bilingual-text mt-1">{topic.title_en}</div>
+                        </button>
+                    ))}
+                </div>
+                <div className="w-full md:w-2/3 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <h2 className="text-2xl font-bold mb-6 text-primary dark:text-indigo-400 border-b pb-4 dark:border-slate-700 flex flex-col">
+                        <span>{summaryData[activeTopic].title_ar}</span>
+                        <span className="text-lg text-slate-500 mt-1">{summaryData[activeTopic].title_en}</span>
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        <div className="bg-slate-50 dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-700">
+                            <span className="text-xs font-bold text-primary uppercase mb-2 block tracking-wider"><i className="fas fa-language mr-1"></i> English Explanation</span>
+                            <p className="text-base leading-relaxed bilingual-text text-slate-700 dark:text-slate-300">
+                                {summaryData[activeTopic].content_en}
+                            </p>
+                        </div>
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                            <span className="text-xs font-bold text-indigo-500 uppercase mb-2 block tracking-wider"><i className="fas fa-language ml-1"></i> الشرح العربي</span>
+                            <p className="text-base leading-relaxed arabic-text text-slate-800 dark:text-slate-200">
+                                {summaryData[activeTopic].content_ar}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-8 flex justify-between">
+                        <button 
+                            disabled={activeTopic === 0} 
+                            onClick={() => setActiveTopic(p => p - 1)}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg disabled:opacity-50 font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                        >
+                            <i className="fas fa-chevron-right"></i> {t('prev')}
+                        </button>
+                        <button 
+                            disabled={activeTopic === summaryData.length - 1} 
+                            onClick={() => setActiveTopic(p => p + 1)}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50 font-bold hover:bg-indigo-600 transition"
+                        >
+                            {t('next')} <i className="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const Flashcards = ({ t, setProgress }) => {
+        const [current, setCurrent] = useState(0);
+        const [flipped, setFlipped] = useState(false);
+        const [reviewed, setReviewed] = useState(new Set());
+
+        useEffect(() => {
+            setProgress(p => ({...p, cards: reviewed.size}));
+        }, [reviewed]);
+
+        const handleNext = () => {
+            setFlipped(false);
+            setTimeout(() => setCurrent(p => (p + 1) % flashcards.length), 150);
+        };
+        
+        const handlePrev = () => {
+            setFlipped(false);
+            setTimeout(() => setCurrent(p => (p - 1 + flashcards.length) % flashcards.length), 150);
+        };
+
+        const markReviewed = () => {
+            const newSet = new Set(reviewed);
+            newSet.add(current);
+            setReviewed(newSet);
+        };
+
+        const card = flashcards[current];
+
+        return (
+            <div className="p-6 max-w-3xl mx-auto flex flex-col items-center">
+                <div className="w-full mb-6">
+                    <div className="flex justify-between text-sm mb-2 text-slate-500 font-semibold">
+                        <span>{t('cardProgress')}</span>
+                        <span>{current + 1} / {flashcards.length}</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${((current + 1) / flashcards.length) * 100}%` }}></div>
+                    </div>
+                </div>
+
+                <div 
+                    onClick={() => setFlipped(!flipped)}
+                    className="w-full h-80 cursor-pointer perspective-1000 relative"
+                >
+                    <div className={`w-full h-full duration-500 preserve-3d relative ${flipped ? 'rotate-y-180' : ''}`}>
+                        {/* Front */}
+                        <div className="absolute w-full h-full backface-hidden bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center text-center">
+                            <span className="text-sm font-semibold text-primary mb-4 uppercase tracking-wider">{t('question')}</span>
+                            <h3 className="text-xl font-bold mb-4 bilingual-text w-full">{card.q_en}</h3>
+                            <div className="w-16 h-1 bg-slate-200 dark:bg-slate-700 my-2 rounded"></div>
+                            <h3 className="text-xl font-bold mb-4 arabic-text w-full text-primary/80">{card.q_ar}</h3>
+                            <p className="text-slate-400 mt-6 text-sm">{t('clickToReveal')}</p>
+                        </div>
+                        {/* Back */}
+                        <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-primary text-white rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center text-center">
+                            <span className="text-sm font-semibold text-indigo-200 mb-4 uppercase tracking-wider">{t('answer')}</span>
+                            <h3 className="text-lg font-bold mb-4 bilingual-text w-full">{card.a_en}</h3>
+                            <div className="w-16 h-1 bg-indigo-400 my-2 rounded"></div>
+                            <h3 className="text-lg font-bold arabic-text w-full">{card.a_ar}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-between w-full mt-8">
+                    <button onClick={handlePrev} className="flex items-center gap-2 px-4 py-3 bg-slate-200 dark:bg-slate-700 rounded-xl font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                        <i className="fas fa-chevron-right"></i> {t('prev')}
+                    </button>
+                    
+                    <button onClick={() => { markReviewed(); handleNext(); }} className="flex items-center gap-2 px-4 py-3 bg-secondary text-white rounded-xl font-semibold hover:bg-emerald-600 transition">
+                        {t('gotIt')} <i className="fas fa-check-circle"></i>
+                    </button>
+
+                    <button onClick={handleNext} className="flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-indigo-600 transition">
+                        {t('next')} <i className="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const Points = ({ t }) => {
+        const [checked, setChecked] = useState(new Set());
+
+        const toggleCheck = (idx) => {
+            const newSet = new Set(checked);
+            if (newSet.has(idx)) newSet.delete(idx);
+            else newSet.add(idx);
+            setChecked(newSet);
+        };
+
+        return (
+            <div className="p-6 max-w-5xl mx-auto">
+                <h2 className="text-2xl font-bold mb-6 text-primary dark:text-indigo-400">{t('importantPointsTitle')}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {importantPoints.map((point, idx) => (
+                        <div 
+                            key={idx} 
+                            onClick={() => toggleCheck(idx)}
+                            className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-4 ${checked.has(idx) ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-md'}`}
+                        >
+                            <div className={`mt-1 flex-shrink-0 ${checked.has(idx) ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`}>
+                                <i className="fas fa-check-circle text-xl"></i>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-slate-800 dark:text-slate-200 font-semibold mb-2 bilingual-text">{point.en}</p>
+                                <p className="text-slate-600 dark:text-slate-400 arabic-text">{point.ar}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const Laws = ({ t, setProgress }) => {
+        const [current, setCurrent] = useState(0);
+        const [showSolution, setShowSolution] = useState(false);
+        const law = lawsData[current];
+
+        useEffect(() => {
+            setProgress(p => ({...p, laws: Math.max(p.laws, current + 1)}));
+        }, [current]);
+
+        return (
+            <div className="p-6 max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-primary dark:text-indigo-400">{t('lawsTitle')}</h2>
+                    <span className="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-sm font-bold">
+                        {current + 1} / {lawsData.length}
+                    </span>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden mb-6">
+                    <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                        <h3 className="text-xl font-bold mb-2 flex flex-col">
+                            <span className="bilingual-text text-primary">{law.name_en}</span>
+                            <span className="arabic-text text-slate-700 dark:text-slate-300 mt-1">{law.name_ar}</span>
+                        </h3>
+                        
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-lg text-center font-serif border border-slate-100 dark:border-slate-700 my-4">
+                            <MathRenderer math={law.formula} />
+                        </div>
+                        
+                        <div className="space-y-2 mt-4">
+                            <p className="text-sm bilingual-text text-slate-600 dark:text-slate-400">{law.desc_en}</p>
+                            <p className="text-sm arabic-text text-slate-700 dark:text-slate-300 font-semibold">{law.desc_ar}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <span className="font-bold text-primary text-sm">{t('symbols')}</span>
+                            <p className="text-sm mt-1 font-mono">{law.symbols}</p>
+                        </div>
+                        <div>
+                            <span className="font-bold text-primary text-sm">{t('usage')}</span>
+                            <p className="text-sm mt-1 bilingual-text">{law.use_en}</p>
+                            <p className="text-sm mt-1 arabic-text font-semibold">{law.use_ar}</p>
+                        </div>
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+                            <span className="font-bold text-amber-700 dark:text-amber-500 text-sm">{t('note')}</span>
+                            <p className="text-sm mt-1 bilingual-text text-amber-800 dark:text-amber-300">{law.note_en}</p>
+                            <p className="text-sm mt-1 arabic-text text-amber-800 dark:text-amber-300 font-semibold">{law.note_ar}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Problem Section */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 p-6">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i className="fas fa-calculator text-secondary"></i> {t('practiceProblem')}
+                    </h3>
+                    
+                    <div className="space-y-2 mb-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                        <p className="text-slate-700 dark:text-slate-300 bilingual-text font-bold">{law.problem.q_en}</p>
+                        <p className="text-slate-700 dark:text-slate-300 arabic-text font-semibold">{law.problem.q_ar}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <span className="text-sm text-slate-500 font-bold block mb-1">{t('given')}</span>
+                            <p className="font-mono text-sm">{law.problem.given}</p>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <span className="text-sm text-slate-500 font-bold block mb-1">{t('required')}</span>
+                            <p className="font-mono text-sm">{law.problem.required}</p>
+                        </div>
+                    </div>
+
+                    {!showSolution ? (
+                        <button onClick={() => setShowSolution(true)} className="w-full py-3 bg-secondary text-white rounded-xl font-bold hover:bg-emerald-600 transition">
+                            {t('showSolution')}
+                        </button>
+                    ) : (
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 rounded-xl">
+                            <span className="font-bold text-emerald-700 dark:text-emerald-500 block mb-2">{t('solution')}</span>
+                            <p className="font-mono text-emerald-800 dark:text-emerald-300 text-lg">{law.problem.solution}</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex justify-between mt-6">
+                    <button 
+                        disabled={current === 0}
+                        onClick={() => { setCurrent(p => p - 1); setShowSolution(false); }}
+                        className="px-6 py-3 bg-slate-200 dark:bg-slate-700 rounded-xl font-bold disabled:opacity-50"
+                    >
+                        {t('prev')}
+                    </button>
+                    <button 
+                        disabled={current === lawsData.length - 1}
+                        onClick={() => { setCurrent(p => p + 1); setShowSolution(false); }}
+                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold disabled:opacity-50"
+                    >
+                        {t('next')}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const Exam = ({ t, setProgress }) => {
+        const [currentQ, setCurrentQ] = useState(0);
+        const [selected, setSelected] = useState(null);
+        const [submitted, setSubmitted] = useState(false);
+        const [score, setScore] = useState(0);
+        const [showResult, setShowResult] = useState(false);
+        const [answers, setAnswers] = useState([]);
+
+        const q = examData[currentQ];
+
+        const handleSubmit = () => {
+            if (selected === null) return;
+            setSubmitted(true);
+            if (selected === q.ans) setScore(s => s + 1);
+            setAnswers([...answers, { q: currentQ, selected, correct: q.ans }]);
+        };
+
+        const handleNext = () => {
+            if (currentQ < examData.length - 1) {
+                setCurrentQ(currentQ + 1);
+                setSelected(null);
+                setSubmitted(false);
+            } else {
+                setShowResult(true);
+                const finalScore = Math.round(((score + (selected === q.ans ? 1 : 0)) / examData.length) * 100);
+                setProgress(p => ({...p, lastExam: finalScore, overall: Math.min(100, p.overall + 10)}));
+            }
+        };
+
+        const retake = () => {
+            setCurrentQ(0);
+            setSelected(null);
+            setSubmitted(false);
+            setScore(0);
+            setShowResult(false);
+            setAnswers([]);
+        };
+
+        if (showResult) {
+            const percentage = Math.round((score / examData.length) * 100);
+            const wrongAnswers = answers.filter(a => a.selected !== a.correct);
+
+            return (
+                <div className="p-6 max-w-3xl mx-auto">
+                    <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 text-center mb-6">
+                        <h2 className="text-3xl font-bold mb-4">{t('examResult')}</h2>
+                        <div className="text-6xl font-bold text-primary mb-6">{percentage}%</div>
+                        <div className="flex justify-center gap-8 mb-6">
+                            <p className="text-lg">{t('correctAnswers')}: <span className="text-emerald-500 font-bold">{score}</span></p>
+                            <p className="text-lg">{t('wrongAnswers')}: <span className="text-red-500 font-bold">{examData.length - score}</span></p>
+                        </div>
+                        <button onClick={retake} className="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-indigo-600 transition">
+                            {t('retakeExam')}
+                        </button>
+                    </div>
+
+                    {wrongAnswers.length > 0 && (
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                            <h3 className="text-xl font-bold mb-4 text-red-500 border-b pb-2">{t('reviewMistakes')}</h3>
+                            <div className="space-y-4">
+                                {wrongAnswers.map((ans, idx) => {
+                                    const questionData = examData[ans.q];
+                                    return (
+                                        <div key={idx} className="p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30">
+                                            <p className="font-bold mb-1 bilingual-text">{questionData.q}</p>
+                                            <p className="font-bold mb-3 arabic-text text-sm text-slate-600 dark:text-slate-400">{questionData.q_ar}</p>
+                                            
+                                            <p className="text-sm text-red-500 mb-1">{t('yourAnswer')}: <span className="font-semibold">{questionData.opts[ans.selected]}</span> ({questionData.opts_ar[ans.selected]})</p>
+                                            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold">{t('correctAnswer')}: <span className="font-semibold">{questionData.opts[questionData.ans]}</span> ({questionData.opts_ar[questionData.ans]})</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="p-6 max-w-3xl mx-auto">
+                <div className="mb-6">
+                    <div className="flex justify-between text-sm mb-2 text-slate-500 font-semibold">
+                        <span>{t('examProgress')}</span>
+                        <span>{currentQ + 1} / {examData.length}</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${((currentQ + 1) / examData.length) * 100}%` }}></div>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700">
+                    <div className="mb-6 border-b pb-4 dark:border-slate-700">
+                        <h3 className="text-xl font-bold mb-2 bilingual-text">{q.q}</h3>
+                        <h3 className="text-lg font-semibold arabic-text text-primary">{q.q_ar}</h3>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                        {q.opts.map((opt, idx) => (
+                            <button
+                                key={idx}
+                                disabled={submitted}
+                                onClick={() => setSelected(idx)}
+                                className={`w-full p-4 rounded-xl border-2 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-2 ${
+                                    selected === idx ? 'border-primary bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-primary/50'
+                                } ${submitted && idx === q.ans ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : ''} ${
+                                    submitted && selected === idx && selected !== q.ans ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : ''
+                                }`}
+                            >
+                                <div className="flex flex-col items-start">
+                                    <span className="bilingual-text font-semibold">{opt}</span>
+                                    <span className="arabic-text text-sm text-slate-500 mt-1">{q.opts_ar ? q.opts_ar[idx] : ''}</span>
+                                </div>
+                                <div className="flex-shrink-0">
+                                    {submitted && idx === q.ans && <i className="fas fa-check-circle text-emerald-500 text-xl"></i>}
+                                    {submitted && selected === idx && selected !== q.ans && <i className="fas fa-times-circle text-red-500 text-xl"></i>}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {submitted && (
+                        <div className={`p-4 rounded-xl mb-6 ${selected === q.ans ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300'}`}>
+                            <p className="font-bold mb-1">{selected === q.ans ? t('correct') : t('incorrect')}</p>
+                            <p className="text-sm bilingual-text">{q.exp}</p>
+                            <p className="text-sm arabic-text font-semibold mt-1">{q.exp_ar}</p>
+                        </div>
+                    )}
+
+                    {!submitted ? (
+                        <button 
+                            onClick={handleSubmit} 
+                            disabled={selected === null}
+                            className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-indigo-600 transition disabled:opacity-50"
+                        >
+                            {t('submitAnswer')}
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={handleNext}
+                            className="w-full py-3 bg-secondary text-white rounded-xl font-bold hover:bg-emerald-600 transition"
+                        >
+                            {currentQ === examData.length - 1 ? t('finishExam') : t('nextQuestion')}
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // ==========================================
+    // 3. MAIN APP
+    // ==========================================
+
+    const App = () => {
+        const [activeTab, setActiveTab] = useState('dashboard');
+        const [lang, setLang] = useState('ar'); // Controls UI Language
+        const [theme, setTheme] = useState('light');
+        
+        // Load Progress
+        const [progress, setProgress] = useState(() => {
+            try {
+                const saved = localStorage.getItem('physicsProgress');
+                return saved ? JSON.parse(saved) : { sections: 0, cards: 0, laws: 0, lastExam: null, overall: 0 };
+            } catch(e) {
+                return { sections: 0, cards: 0, laws: 0, lastExam: null, overall: 0 };
+            }
+        });
+
+        // Save Progress
+        useEffect(() => {
+            localStorage.setItem('physicsProgress', JSON.stringify(progress));
+        }, [progress]);
+
+        // Handle Theme
+        useEffect(() => {
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        }, [theme]);
+
+        // Handle UI Language
+        useEffect(() => {
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
+        }, [lang]);
+
+        // UI Translation Dictionary
+        const t = (key) => {
+            const dict = {
+                ar: {
+                    appName: 'فيزياء 100', dashboard: 'لوحة التحكم', summary: 'ملخص المنهج', flashcards: 'الفلاش كاردز', 
+                    points: 'النقاط المهمة', laws: 'القوانين والمسائل', exam: 'الاختبار النهائي',
+                    welcome: 'مرحباً بك في منصة الفيزياء', welcomeDesc: 'استعد لامتحانك بأفضل طريقة تفاعلية.',
+                    overallProgress: 'نسبة الإنجاز الإجمالية', studiedSections: 'الأجزاء المدروسة', reviewedCards: 'الفلاش كاردز المُراجعة',
+                    learnedLaws: 'القوانين المتعلمة', lastExam: 'نتيجة آخر اختبار', noExam: 'لم يحدد',
+                    resetProgress: 'إعادة ضبط التقدم', prev: 'السابق', next: 'التالي', 
+                    cardProgress: 'تقدم الفلاش كاردز', question: 'السؤال', answer: 'الإجابة', clickToReveal: 'اضغط لكشف الإجابة', gotIt: 'تم المراجعة',
+                    importantPointsTitle: 'أهم النقاط في المنهج', lawsTitle: 'القوانين والمسائل التفاعلية', symbols: 'الرموز:', usage: 'متى نستخدمه:', note: 'ملاحظة مهمة:',
+                    practiceProblem: 'مسألة تطبيقية', given: 'المعطيات:', required: 'المطلوب:', showSolution: 'إظهار الحل', solution: 'الحل:',
+                    examProgress: 'تقدم الاختبار', submitAnswer: 'تأكيد الإجابة', nextQuestion: 'السؤال التالي', finishExam: 'إنهاء الاختبار',
+                    correct: 'إجابة صحيحة!', incorrect: 'إجابة خاطئة', examResult: 'نتيجة الاختبار', correctAnswers: 'إجابات صحيحة', wrongAnswers: 'إجابات خاطئة', retakeExam: 'إعادة الاختبار',
+                    reviewMistakes: 'مراجعة الأخطاء', yourAnswer: 'إجابتك', correctAnswer: 'الإجابة الصحيحة'
+                },
+                en: {
+                    appName: 'Physics 100', dashboard: 'Dashboard', summary: 'Summary', flashcards: 'Flashcards', 
+                    points: 'Important Points', laws: 'Laws & Problems', exam: 'Final Exam',
+                    welcome: 'Welcome to Physics Platform', welcomeDesc: 'Prepare for your exam in the best interactive way.',
+                    overallProgress: 'Overall Progress', studiedSections: 'Studied Sections', reviewedCards: 'Reviewed Cards',
+                    learnedLaws: 'Learned Laws', lastExam: 'Last Exam Score', noExam: 'N/A',
+                    resetProgress: 'Reset Progress', prev: 'Previous', next: 'Next', 
+                    cardProgress: 'Flashcard Progress', question: 'Question', answer: 'Answer', clickToReveal: 'Click to reveal answer', gotIt: 'Got it',
+                    importantPointsTitle: 'Important Points Summary', lawsTitle: 'Interactive Laws & Problems', symbols: 'Symbols:', usage: 'When to use:', note: 'Important Note:',
+                    practiceProblem: 'Practice Problem', given: 'Given:', required: 'Required:', showSolution: 'Show Solution', solution: 'Solution:',
+                    examProgress: 'Exam Progress', submitAnswer: 'Submit Answer', nextQuestion: 'Next Question', finishExam: 'Finish Exam',
+                    correct: 'Correct Answer!', incorrect: 'Incorrect Answer', examResult: 'Exam Result', correctAnswers: 'Correct Answers', wrongAnswers: 'Wrong Answers', retakeExam: 'Retake Exam',
+                    reviewMistakes: 'Review Mistakes', yourAnswer: 'Your Answer', correctAnswer: 'Correct Answer'
+                }
+            };
+            return dict[lang][key] || key;
+        };
+
+        const renderContent = () => {
+            switch(activeTab) {
+                case 'dashboard': return <Dashboard t={t} progress={progress} resetProgress={() => { localStorage.removeItem('physicsProgress'); window.location.reload(); }} />;
+                case 'summary': return <Summary t={t} setProgress={setProgress} />;
+                case 'flashcards': return <Flashcards t={t} setProgress={setProgress} />;
+                case 'points': return <Points t={t} />;
+                case 'laws': return <Laws t={t} setProgress={setProgress} />;
+                case 'exam': return <Exam t={t} setProgress={setProgress} />;
+                default: return <Dashboard t={t} progress={progress} />;
+            }
+        };
+
+        return (
+            <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+                <Sidebar 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    t={t} 
+                    lang={lang} 
+                    toggleLang={() => setLang(l => l === 'ar' ? 'en' : 'ar')}
+                    theme={theme}
+                    toggleTheme={() => setTheme(th => th === 'light' ? 'dark' : 'light')}
+                />
+                <main className="flex-1 overflow-y-auto h-screen pb-20 md:pb-0 relative">
+                    {renderContent()}
+                </main>
+                
+                {/* Mobile Bottom Navigation */}
+                <div className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around py-2 z-50">
+                    {[
+                        { id: 'dashboard', icon: 'fa-chart-pie' },
+                        { id: 'summary', icon: 'fa-book-open' },
+                        { id: 'flashcards', icon: 'fa-clone' },
+                        { id: 'laws', icon: 'fa-calculator' },
+                        { id: 'exam', icon: 'fa-graduation-cap' }
+                    ].map(item => (
+                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`p-2 rounded-lg text-lg ${activeTab === item.id ? 'text-primary' : 'text-slate-400'}`}>
+                            <i className={`fas ${item.icon}`}></i>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+
+</body>
+</html>
